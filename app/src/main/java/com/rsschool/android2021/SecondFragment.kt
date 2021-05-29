@@ -1,17 +1,34 @@
 package com.rsschool.android2021
 
+import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.OnBackPressedDispatcher
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import kotlin.random.Random
 
 class SecondFragment : Fragment() {
 
     private var backButton: Button? = null
     private var result: TextView? = null
+    private var listener: SavePrevResult? = null
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        listener = context as SavePrevResult
+        activity?.onBackPressedDispatcher?.addCallback(this, object : OnBackPressedCallback(true){
+            override fun handleOnBackPressed() {
+                listener?.savePrev(Integer.parseInt(result?.text.toString()))
+            }
+        })
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -32,28 +49,32 @@ class SecondFragment : Fragment() {
         result?.text = generate(min, max).toString()
 
         backButton?.setOnClickListener {
-            // TODO: implement back
+            listener?.savePrev(Integer.parseInt(result?.text.toString()))
         }
     }
 
+
     private fun generate(min: Int, max: Int): Int {
-        // TODO: generate random number
-        return 0
+        return Random.nextInt(min, max)
     }
 
     companion object {
 
         @JvmStatic
         fun newInstance(min: Int, max: Int): SecondFragment {
-            val fragment = SecondFragment()
-            val args = Bundle()
-
-            // TODO: implement adding arguments
-
-            return fragment
+            return SecondFragment().apply {
+                arguments = bundleOf(
+                    MIN_VALUE_KEY to min,
+                    MAX_VALUE_KEY to max
+                )
+            }
         }
 
         private const val MIN_VALUE_KEY = "MIN_VALUE"
         private const val MAX_VALUE_KEY = "MAX_VALUE"
+    }
+
+    interface SavePrevResult {
+        fun savePrev(prevResult: Int)
     }
 }
